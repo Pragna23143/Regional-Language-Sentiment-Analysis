@@ -1,1 +1,1 @@
-dataset.zip filter=lfs diff=lfs merge=lfs -text
+dataset(kannada)/** filter=lfs diff=lfs merge=lfs -text
