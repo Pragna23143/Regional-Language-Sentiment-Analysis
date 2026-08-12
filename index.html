@@ -1,0 +1,2030 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Emotion Recognition</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg:         #060610;
+  --surface:    #0d0d1e;
+  --surface2:   #13132a;
+  --border:     #1e1e3a;
+  --border2:    #2a2a4a;
+  --accent:     #7c6cff;
+  --accent2:    #c084fc;
+  --accent3:    #38bdf8;
+  --text:       #e2e2f0;
+  --muted:      #5a5a7a;
+  --muted2:     #8888aa;
+  --angry:      #f87171;
+  --fear:       #fb923c;
+  --happy:      #4ade80;
+  --neutral:    #60a5fa;
+  --sad:        #c084fc;
+  --info-c:     #22d3ee;
+  --agg-c:      #f87171;
+  --promo-c:    #f472b6;
+  --conv-c:     #34d399;
+  --radius:     14px;
+  --radius-sm:  8px;
+  --sidebar-w:  300px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ════════════════════════════════════════════════════════
+   AUTH PAGE — shown first, hidden after login
+════════════════════════════════════════════════════════ */
+#authPage {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  padding: 32px 16px;
+}
+
+#authPage .ambient-1 {
+  position: fixed; top: -200px; left: -200px;
+  width: 600px; height: 600px;
+  background: radial-gradient(circle, rgba(124,108,255,0.15) 0%, transparent 70%);
+  pointer-events: none;
+}
+#authPage .ambient-2 {
+  position: fixed; bottom: -200px; right: -200px;
+  width: 500px; height: 500px;
+  background: radial-gradient(circle, rgba(192,132,252,0.10) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.auth-card {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 28px;
+  width: 100%;
+  max-width: 440px;
+  padding: 44px 40px 40px;
+  position: relative;
+  z-index: 1;
+  box-shadow: 0 32px 80px rgba(0,0,0,0.55), 0 0 0 1px rgba(124,108,255,0.08);
+  animation: fadeUp 0.45s ease both;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.auth-logo {
+  width: 56px; height: 56px;
+  background: linear-gradient(135deg, #7c6cff, #c084fc);
+  border-radius: 18px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 26px;
+  margin: 0 auto 22px;
+  box-shadow: 0 0 36px rgba(124,108,255,0.45);
+}
+
+.auth-brand-name {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.9rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  text-align: center;
+  color: #ffffff;
+  margin-bottom: 6px;
+}
+.auth-brand-name strong {
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.auth-tagline {
+  text-align: center;
+  color: var(--muted2);
+  font-size: 0.85rem;
+  margin-bottom: 32px;
+}
+
+/* Tab switcher */
+.auth-tabs {
+  display: flex;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 4px;
+  gap: 4px;
+  margin-bottom: 28px;
+}
+.auth-tab {
+  flex: 1; text-align: center;
+  padding: 9px;
+  border-radius: 9px;
+  cursor: pointer;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.85rem; font-weight: 600;
+  color: var(--muted2);
+  border: none; background: transparent;
+  transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+  letter-spacing: 0.03em;
+}
+.auth-tab.active {
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  color: #fff;
+  box-shadow: 0 2px 12px rgba(124,108,255,0.35);
+}
+
+/* Form fields */
+.auth-form { display: flex; flex-direction: column; gap: 16px; }
+
+.field-wrap { display: flex; flex-direction: column; gap: 6px; }
+
+.field-label {
+  font-size: 0.74rem; font-weight: 600;
+  color: var(--muted2); letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.auth-form input {
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 0.94rem;
+  padding: 13px 16px;
+  outline: none;
+  width: 100%;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.auth-form input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(124,108,255,0.14);
+}
+.auth-form input::placeholder { color: var(--muted); }
+
+.btn-auth-submit {
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  border: none;
+  border-radius: var(--radius-sm);
+  color: #fff;
+  cursor: pointer;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.97rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 14px;
+  width: 100%;
+  margin-top: 4px;
+  transition: opacity 0.2s, transform 0.15s, box-shadow 0.2s;
+  box-shadow: 0 4px 20px rgba(124,108,255,0.3);
+}
+.btn-auth-submit:hover:not(:disabled) {
+  opacity: 0.92; transform: translateY(-1px);
+  box-shadow: 0 8px 28px rgba(124,108,255,0.42);
+}
+.btn-auth-submit:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+.auth-error {
+  background: rgba(248,113,113,0.08);
+  border: 1px solid rgba(248,113,113,0.25);
+  border-radius: var(--radius-sm);
+  color: #fca5a5;
+  font-size: 0.83rem;
+  padding: 11px 14px;
+  display: none;
+  line-height: 1.5;
+}
+.auth-error.visible { display: block; }
+
+.auth-footer-link {
+  text-align: center;
+  margin-top: 18px;
+  font-size: 0.82rem;
+  color: var(--muted2);
+}
+.auth-footer-link a {
+  color: var(--accent2);
+  cursor: pointer;
+  font-weight: 600;
+  text-decoration: none;
+}
+.auth-footer-link a:hover { text-decoration: underline; }
+
+/* ════════════════════════════════════════════════════════
+   MAIN APP — hidden until logged in
+════════════════════════════════════════════════════════ */
+#appPage {
+  display: none;
+}
+
+/* ── App layout ── */
+.layout {
+  display: flex;
+  min-height: 100vh;
+  position: relative;
+}
+
+.main-content {
+  flex: 1;
+  transition: margin-right 0.3s ease;
+}
+
+.main-content.sidebar-open {
+  margin-right: var(--sidebar-w);
+}
+
+.ambient-1 {
+  position: fixed; top: -200px; left: -200px;
+  width: 600px; height: 600px;
+  background: radial-gradient(circle, rgba(124,108,255,0.12) 0%, transparent 70%);
+  pointer-events: none; z-index: 0;
+}
+.ambient-2 {
+  position: fixed; bottom: -200px; right: -200px;
+  width: 500px; height: 500px;
+  background: radial-gradient(circle, rgba(192,132,252,0.08) 0%, transparent 70%);
+  pointer-events: none; z-index: 0;
+}
+
+.wrapper {
+  position: relative; z-index: 1;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 56px 24px 100px;
+}
+
+/* ── App header ── */
+header {
+  text-align: center; margin-bottom: 52px;
+  position: relative;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.brand-icon {
+  width: 52px; height: 52px;
+  background: linear-gradient(135deg, #7c6cff, #c084fc);
+  border-radius: 16px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px;
+  box-shadow: 0 0 32px rgba(124,108,255,0.4);
+}
+
+.brand-name {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: clamp(2.2rem, 5vw, 3.4rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  background: linear-gradient(135deg, #fff 30%, #c084fc 70%, #7c6cff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.brand-tag {
+  display: inline-block;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: clamp(1.4rem, 3.5vw, 2.4rem);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  background: linear-gradient(135deg, #fff 30%, #c084fc 70%, #7c6cff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  white-space: nowrap;
+}
+
+.subtitle {
+  color: var(--muted2);
+  font-size: 1rem;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+}
+
+/* ── User bar (top-right) ── */
+.user-bar {
+  position: absolute;
+  top: 0; right: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.user-initials {
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.73rem; font-weight: 700;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.user-name-label {
+  font-size: 0.82rem;
+  color: var(--muted2);
+  font-weight: 500;
+}
+
+.btn-sm {
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius-sm);
+  color: var(--muted2);
+  cursor: pointer;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 6px 14px;
+  transition: border-color 0.2s, color 0.2s;
+}
+.btn-sm:hover { border-color: var(--accent); color: var(--text); }
+
+.btn-history {
+  background: rgba(124,108,255,0.1);
+  border: 1px solid rgba(124,108,255,0.25);
+  border-radius: var(--radius-sm);
+  color: #a78bfa;
+  cursor: pointer;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 6px 14px;
+  transition: background 0.2s;
+}
+.btn-history:hover { background: rgba(124,108,255,0.18); }
+
+/* ── Cards ── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 32px;
+  margin-bottom: 20px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+.card:hover { border-color: var(--border2); }
+
+.card-top-bar {
+  position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  opacity: 0.7;
+}
+
+.card-label {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 22px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.card-label::before {
+  content: '';
+  display: inline-block;
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+}
+
+/* ── Input form ── */
+.input-group { display: flex; flex-direction: column; gap: 14px; }
+.url-row { display: flex; gap: 12px; align-items: stretch; }
+
+input[type="text"], select {
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 0.92rem;
+  padding: 13px 18px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  width: 100%;
+}
+input[type="text"]:focus, select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(124,108,255,0.12);
+}
+input::placeholder { color: var(--muted); }
+
+select {
+  width: 175px; flex-shrink: 0;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%235a5a7a' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  padding-right: 36px;
+}
+select option { background: var(--surface2); }
+
+.btn-row { display: flex; gap: 10px; }
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  border: none;
+  border-radius: var(--radius);
+  color: #fff;
+  cursor: pointer;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 14px 32px;
+  transition: opacity 0.2s, transform 0.15s, box-shadow 0.2s;
+  box-shadow: 0 4px 20px rgba(124,108,255,0.3);
+}
+.btn-primary:hover:not(:disabled) {
+  opacity: 0.92; transform: translateY(-2px);
+  box-shadow: 0 8px 28px rgba(124,108,255,0.4);
+}
+.btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
+
+.btn-timeline {
+  background: rgba(56,189,248,0.12);
+  border: 1px solid rgba(56,189,248,0.25);
+  border-radius: var(--radius);
+  color: #7dd3fc;
+  cursor: pointer;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.88rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 14px 24px;
+  transition: background 0.2s, transform 0.15s;
+}
+.btn-timeline:hover:not(:disabled) { background: rgba(56,189,248,0.2); transform: translateY(-2px); }
+.btn-timeline:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ── Loader ── */
+.loader {
+  display: none; align-items: center; gap: 12px;
+  color: var(--muted2); font-size: 0.88rem;
+  margin-top: 18px; padding: 14px 18px;
+  background: rgba(124,108,255,0.06);
+  border: 1px solid rgba(124,108,255,0.15);
+  border-radius: var(--radius-sm);
+}
+.loader.active { display: flex; }
+
+.spinner {
+  width: 16px; height: 16px;
+  border: 2px solid var(--border2);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.error-box {
+  display: none;
+  background: rgba(248,113,113,0.07);
+  border: 1px solid rgba(248,113,113,0.25);
+  border-radius: var(--radius-sm);
+  padding: 14px 18px;
+  color: #fca5a5; font-size: 0.87rem; margin-top: 14px;
+}
+.error-box.visible { display: block; }
+
+/* ── Result section ── */
+.result-section { display: none; }
+.result-section.visible { display: block; animation: fadeUp 0.4s ease; }
+
+/* ── Detection chips ── */
+.result-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 14px;
+}
+@media (max-width: 560px) {
+  .result-grid { grid-template-columns: 1fr; }
+  .url-row { flex-direction: column; }
+  select { width: 100%; }
+  .user-bar { position: static; justify-content: center; margin-bottom: 12px; }
+  .main-content.sidebar-open { margin-right: 0; }
+}
+
+.result-chip {
+  background: var(--surface2); border: 1px solid var(--border2);
+  border-radius: var(--radius); padding: 22px 24px;
+  position: relative; overflow: hidden;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.result-chip:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(0,0,0,0.3); }
+
+.chip-icon { font-size: 1.6rem; margin-bottom: 10px; display: block; }
+.chip-label {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.64rem; font-weight: 600;
+  letter-spacing: 0.13em; text-transform: uppercase;
+  color: var(--muted); margin-bottom: 6px;
+}
+.chip-value {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.8rem; font-weight: 700;
+  letter-spacing: -0.02em; text-transform: capitalize;
+}
+.chip-angry   .chip-value { color: var(--angry); }
+.chip-fear    .chip-value { color: var(--fear); }
+.chip-happy   .chip-value { color: var(--happy); }
+.chip-neutral .chip-value { color: var(--neutral); }
+.chip-sad     .chip-value { color: var(--sad); }
+.chip-informative    .chip-value { color: var(--info-c); }
+.chip-aggressive     .chip-value { color: var(--agg-c); }
+.chip-promotional    .chip-value { color: var(--promo-c); }
+.chip-conversational .chip-value { color: var(--conv-c); }
+.chip-glow-angry   { box-shadow: 0 0 24px rgba(248,113,113,0.12); border-color: rgba(248,113,113,0.25); }
+.chip-glow-fear    { box-shadow: 0 0 24px rgba(251,146,60,0.12);  border-color: rgba(251,146,60,0.25);  }
+.chip-glow-happy   { box-shadow: 0 0 24px rgba(74,222,128,0.12);  border-color: rgba(74,222,128,0.25);  }
+.chip-glow-neutral { box-shadow: 0 0 24px rgba(96,165,250,0.12);  border-color: rgba(96,165,250,0.25);  }
+.chip-glow-sad     { box-shadow: 0 0 24px rgba(192,132,252,0.12); border-color: rgba(192,132,252,0.25); }
+
+/* ── Probability bars ── */
+.prob-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; }
+@media (max-width: 620px) { .prob-cols { grid-template-columns: 1fr; } }
+
+.prob-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.prob-name {
+  width: 100px; font-size: 0.8rem;
+  color: var(--muted2); text-transform: capitalize;
+  flex-shrink: 0; font-weight: 500;
+}
+.prob-bar-bg { flex: 1; background: var(--surface2); border-radius: 4px; height: 5px; overflow: hidden; }
+.prob-bar-fill {
+  height: 100%; border-radius: 4px; width: 0%;
+  transition: width 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.prob-pct {
+  width: 38px; text-align: right;
+  font-size: 0.76rem; color: var(--muted);
+  font-variant-numeric: tabular-nums; font-weight: 500;
+}
+
+.source-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 0.66rem; font-weight: 600;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  padding: 3px 10px; border-radius: 20px; margin-bottom: 14px;
+}
+.badge-audio { background: rgba(124,108,255,0.15); color: #a78bfa; border: 1px solid rgba(124,108,255,0.25); }
+.badge-video { background: rgba(56,189,248,0.12);  color: #7dd3fc; border: 1px solid rgba(56,189,248,0.2); }
+
+.explanation-box {
+  background: var(--surface2); border: 1px solid var(--border2);
+  border-radius: var(--radius); padding: 20px 22px;
+  font-size: 0.9rem; line-height: 1.75; color: #c4c4dc;
+}
+.transcript-box {
+  background: var(--surface2); border: 1px solid var(--border2);
+  border-radius: var(--radius); padding: 18px 22px;
+  font-size: 0.87rem; line-height: 1.72; color: #a0a0bc;
+  white-space: pre-wrap; word-break: break-word;
+  max-height: 200px; overflow-y: auto; font-style: italic;
+}
+.transcript-box::-webkit-scrollbar { width: 4px; }
+.transcript-box::-webkit-scrollbar-track { background: transparent; }
+.transcript-box::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
+
+.meta-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+.meta-pill {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 20px; padding: 5px 14px;
+  font-size: 0.74rem; color: var(--muted2); font-weight: 500;
+}
+.meta-pill span { color: var(--text); font-weight: 600; }
+
+/* ── Timeline ── */
+.timeline-section { display: none; }
+.timeline-section.visible { display: block; animation: fadeUp 0.4s ease; }
+
+.timeline-loader {
+  display: none; align-items: center; gap: 12px;
+  color: var(--muted2); font-size: 0.88rem;
+  margin-top: 12px; padding: 12px 16px;
+  background: rgba(56,189,248,0.06);
+  border: 1px solid rgba(56,189,248,0.15);
+  border-radius: var(--radius-sm);
+}
+.timeline-loader.active { display: flex; }
+
+.spinner-teal {
+  width: 16px; height: 16px;
+  border: 2px solid var(--border2);
+  border-top-color: var(--accent3);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite; flex-shrink: 0;
+}
+
+.chart-container {
+  position: relative;
+  background: var(--surface2); border: 1px solid var(--border2);
+  border-radius: var(--radius); padding: 20px; height: 280px;
+}
+
+/* ── History sidebar ── */
+.sidebar {
+  position: fixed; top: 0; right: 0;
+  width: var(--sidebar-w); height: 100vh;
+  background: var(--surface);
+  border-left: 1px solid var(--border2);
+  z-index: 100;
+  transform: translateX(100%);
+  transition: transform 0.3s ease;
+  display: flex; flex-direction: column;
+}
+.sidebar.open { transform: translateX(0); }
+
+.sidebar-header {
+  padding: 20px 20px 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  flex-shrink: 0;
+}
+.sidebar-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.85rem; font-weight: 600;
+  letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted2);
+}
+.sidebar-close {
+  background: none; border: none;
+  color: var(--muted); cursor: pointer; font-size: 1.2rem;
+  padding: 2px 6px; transition: color 0.2s;
+}
+.sidebar-close:hover { color: var(--text); }
+
+.sidebar-body { flex: 1; overflow-y: auto; padding: 12px 16px; }
+.sidebar-body::-webkit-scrollbar { width: 4px; }
+.sidebar-body::-webkit-scrollbar-track { background: transparent; }
+.sidebar-body::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
+
+.history-item {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 12px 14px; margin-bottom: 8px;
+  cursor: pointer; position: relative;
+  transition: border-color 0.2s, background 0.2s;
+}
+.history-item:hover { border-color: var(--accent); background: rgba(124,108,255,0.06); }
+
+.history-url {
+  font-size: 0.76rem; color: var(--muted2);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  max-width: calc(var(--sidebar-w) - 80px); margin-bottom: 5px;
+}
+.history-tags { display: flex; gap: 5px; flex-wrap: wrap; }
+.history-tag {
+  font-size: 0.65rem; font-weight: 600;
+  padding: 2px 8px; border-radius: 10px; text-transform: capitalize;
+}
+.tag-angry   { background: rgba(248,113,113,0.15); color: var(--angry); }
+.tag-fear    { background: rgba(251,146,60,0.15);  color: var(--fear); }
+.tag-happy   { background: rgba(74,222,128,0.15);  color: var(--happy); }
+.tag-neutral { background: rgba(96,165,250,0.15);  color: var(--neutral); }
+.tag-sad     { background: rgba(192,132,252,0.15); color: var(--sad); }
+.tag-intent  { background: rgba(52,211,153,0.12);  color: #6ee7b7; }
+.history-time { font-size: 0.65rem; color: var(--muted); margin-top: 5px; }
+
+.history-delete {
+  position: absolute; top: 8px; right: 10px;
+  background: none; border: none;
+  color: var(--muted); cursor: pointer; font-size: 0.75rem;
+  padding: 2px 5px; border-radius: 4px;
+  transition: color 0.2s, background 0.2s;
+  opacity: 0;
+}
+.history-item:hover .history-delete { opacity: 1; }
+.history-delete:hover { color: var(--angry); background: rgba(248,113,113,0.1); }
+
+.history-empty {
+  text-align: center; padding: 40px 20px;
+  color: var(--muted); font-size: 0.84rem; line-height: 1.6;
+}
+
+/* ════════════════════════════════════════════════════════
+   CHATBOT SECTION
+════════════════════════════════════════════════════════ */
+.chat-section { display: none; }
+.chat-section.visible { display: block; animation: fadeUp 0.4s ease; }
+
+.chat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  margin-bottom: 20px;
+  position: relative;
+  overflow: hidden;
+}
+.chat-card:hover { border-color: var(--border2); }
+
+.chat-top-bar {
+  position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, #38bdf8, #7c6cff, #c084fc);
+  opacity: 0.8;
+}
+
+.chat-header {
+  padding: 24px 28px 0;
+  display: flex; align-items: center; justify-content: space-between;
+}
+
+.chat-header-left {
+  display: flex; align-items: center; gap: 12px;
+}
+
+.chat-ai-icon {
+  width: 36px; height: 36px;
+  background: linear-gradient(135deg, #38bdf8, #7c6cff);
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px;
+  box-shadow: 0 0 20px rgba(56,189,248,0.3);
+  flex-shrink: 0;
+}
+
+.chat-header-info h3 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.92rem; font-weight: 600; color: var(--text);
+  letter-spacing: -0.01em;
+}
+.chat-header-info p {
+  font-size: 0.72rem; color: var(--muted2); margin-top: 1px;
+}
+
+.chat-clear-btn {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--muted);
+  cursor: pointer;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 5px 12px;
+  transition: border-color 0.2s, color 0.2s;
+}
+.chat-clear-btn:hover { border-color: var(--accent); color: var(--text); }
+
+/* Messages window */
+.chat-messages {
+  padding: 20px 28px;
+  display: flex; flex-direction: column; gap: 14px;
+  min-height: 200px;
+  max-height: 480px;
+  overflow-y: auto;
+}
+.chat-messages::-webkit-scrollbar { width: 4px; }
+.chat-messages::-webkit-scrollbar-track { background: transparent; }
+.chat-messages::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
+
+/* Intro message */
+.chat-intro {
+  text-align: center; padding: 24px 16px;
+  color: var(--muted); font-size: 0.84rem; line-height: 1.65;
+}
+.chat-intro-icon { font-size: 2rem; margin-bottom: 10px; display: block; }
+.chat-intro h4 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.88rem; font-weight: 600;
+  color: var(--muted2); margin-bottom: 6px;
+}
+
+/* Suggestion chips */
+.chat-suggestions {
+  display: flex; flex-wrap: wrap; gap: 8px;
+  justify-content: center;
+  margin-top: 16px;
+}
+.chat-suggestion-chip {
+  background: rgba(124,108,255,0.08);
+  border: 1px solid rgba(124,108,255,0.2);
+  border-radius: 20px;
+  padding: 6px 14px;
+  font-size: 0.76rem; color: #a78bfa;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+.chat-suggestion-chip:hover {
+  background: rgba(124,108,255,0.16);
+  border-color: rgba(124,108,255,0.4);
+}
+
+/* Chat bubbles */
+.chat-bubble {
+  display: flex;
+  gap: 10px;
+  animation: fadeUp 0.25s ease both;
+}
+.chat-bubble.user { flex-direction: row-reverse; }
+
+.bubble-avatar {
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.7rem; font-weight: 700;
+  flex-shrink: 0; margin-top: 2px;
+}
+.bubble-avatar.ai {
+  background: linear-gradient(135deg, #38bdf8, #7c6cff);
+  color: #fff;
+}
+.bubble-avatar.user-av {
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  color: #fff;
+}
+
+.bubble-body {
+  max-width: 78%;
+}
+.bubble-text {
+  padding: 12px 16px;
+  border-radius: 16px;
+  font-size: 0.875rem;
+  line-height: 1.65;
+  word-break: break-word;
+}
+.chat-bubble.ai .bubble-text {
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-top-left-radius: 4px;
+  color: var(--text);
+}
+.chat-bubble.user .bubble-text {
+  background: linear-gradient(135deg, rgba(124,108,255,0.25), rgba(192,132,252,0.2));
+  border: 1px solid rgba(124,108,255,0.25);
+  border-top-right-radius: 4px;
+  color: var(--text);
+  text-align: right;
+}
+.bubble-time {
+  font-size: 0.66rem; color: var(--muted);
+  margin-top: 4px;
+  padding: 0 4px;
+}
+.chat-bubble.user .bubble-time { text-align: right; }
+
+/* Typing indicator */
+.typing-indicator {
+  display: flex; gap: 4px; align-items: center;
+  padding: 12px 16px;
+  background: var(--surface2); border: 1px solid var(--border2);
+  border-radius: 16px; border-top-left-radius: 4px;
+  width: fit-content;
+}
+.typing-dot {
+  width: 6px; height: 6px;
+  background: var(--muted2);
+  border-radius: 50%;
+  animation: typingBounce 1.2s ease infinite;
+}
+.typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.typing-dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes typingBounce {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+  30%            { transform: translateY(-5px); opacity: 1; }
+}
+
+/* Chat input row */
+.chat-input-row {
+  padding: 16px 20px 20px;
+  border-top: 1px solid var(--border);
+  display: flex; gap: 10px; align-items: flex-end;
+}
+
+.chat-input-wrap {
+  flex: 1;
+  position: relative;
+}
+
+.chat-input {
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: 14px;
+  color: var(--text);
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 0.9rem;
+  padding: 12px 16px;
+  outline: none;
+  width: 100%;
+  resize: none;
+  min-height: 46px;
+  max-height: 120px;
+  line-height: 1.5;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  overflow-y: auto;
+}
+.chat-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(124,108,255,0.12);
+}
+.chat-input::placeholder { color: var(--muted); }
+
+.chat-send-btn {
+  width: 46px; height: 46px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  border: none;
+  border-radius: 12px;
+  color: #fff;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+  transition: opacity 0.2s, transform 0.15s, box-shadow 0.2s;
+  box-shadow: 0 4px 16px rgba(124,108,255,0.3);
+}
+.chat-send-btn:hover:not(:disabled) {
+  opacity: 0.9; transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(124,108,255,0.4);
+}
+.chat-send-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
+
+/* GPT badge on intent explanation */
+.gpt-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: rgba(74,222,128,0.1);
+  border: 1px solid rgba(74,222,128,0.2);
+  border-radius: 20px; padding: 3px 10px;
+  font-size: 0.65rem; font-weight: 700;
+  color: #4ade80; letter-spacing: 0.06em;
+  text-transform: uppercase; margin-left: 8px;
+  vertical-align: middle;
+}
+
+/* ── Main title (replaces brand icon + brand-tag) ── */
+.main-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: clamp(2rem, 5vw, 3.2rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: #ffffff;
+  margin-bottom: 12px;
+  line-height: 1.1;
+}
+.main-title strong {
+  font-weight: 800;
+  color: #ffffff;
+  -webkit-text-fill-color: #ffffff;
+}
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════════════════
+     PAGE 1 — AUTH (login / sign up)
+════════════════════════════════════════════════════════ -->
+<div id="authPage">
+  <div class="ambient-1"></div>
+  <div class="ambient-2"></div>
+
+  <div class="auth-card">
+    <div class="auth-logo">◈</div>
+    <div class="auth-brand-name"><strong>Emotion Recognition</strong></div>
+    <p class="auth-tagline">Multimodal Deep Learning · Emotion &amp; Intent Analysis</p>
+
+    <!-- Tabs -->
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="tabLogin"  onclick="switchAuthTab('login')">Sign In</button>
+      <button class="auth-tab"        id="tabSignup" onclick="switchAuthTab('signup')">Create Account</button>
+    </div>
+
+    <!-- ── Login form ── -->
+    <div id="formLogin">
+      <div class="auth-form">
+        <div class="field-wrap">
+          <label class="field-label" for="loginEmail">Email</label>
+          <input type="email" id="loginEmail" placeholder="you@example.com" autocomplete="email"/>
+        </div>
+        <div class="field-wrap">
+          <label class="field-label" for="loginPassword">Password</label>
+          <input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password"/>
+        </div>
+        <div class="auth-error" id="loginError"></div>
+        <button class="btn-auth-submit" id="loginBtn" onclick="doLogin()">Sign In</button>
+      </div>
+      <div class="auth-footer-link">
+        No account? <a onclick="switchAuthTab('signup')">Create one — it's free</a>
+      </div>
+    </div>
+
+    <!-- ── Sign-up form ── -->
+    <div id="formSignup" style="display:none;">
+      <div class="auth-form">
+        <div class="field-wrap">
+          <label class="field-label" for="signupName">Full Name</label>
+          <input type="text" id="signupName" placeholder="Your name" autocomplete="name"/>
+        </div>
+        <div class="field-wrap">
+          <label class="field-label" for="signupEmail">Email</label>
+          <input type="email" id="signupEmail" placeholder="you@example.com" autocomplete="email"/>
+        </div>
+        <div class="field-wrap">
+          <label class="field-label" for="signupPassword">Password</label>
+          <input type="password" id="signupPassword" placeholder="Min. 6 characters" autocomplete="new-password"/>
+        </div>
+        <div class="auth-error" id="signupError"></div>
+        <button class="btn-auth-submit" id="signupBtn" onclick="doSignup()">Create Account</button>
+      </div>
+      <div class="auth-footer-link">
+        Already have an account? <a onclick="switchAuthTab('login')">Sign in</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════
+     PAGE 2 — EMOTION RECOGNITION APP (shown only after login)
+════════════════════════════════════════════════════════ -->
+<div id="appPage">
+  <div class="ambient-1"></div>
+  <div class="ambient-2"></div>
+
+  <div class="layout">
+
+    <!-- History Sidebar -->
+    <div class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <span class="sidebar-title">📋 Analysis History</span>
+        <button class="sidebar-close" onclick="closeSidebar()">✕</button>
+      </div>
+      <div class="sidebar-body" id="sidebarBody">
+        <div class="history-empty">Run your first analysis to see history here.</div>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content" id="mainContent">
+    <div class="wrapper">
+
+      <!-- Header -->
+      <header>
+        <!-- User bar top-right -->
+        <div class="user-bar">
+          <div class="user-initials" id="userInitials">?</div>
+          <span class="user-name-label" id="userNameLabel"></span>
+          <button class="btn-sm" onclick="signOut()">Sign out</button>
+        </div>
+
+        <h1 class="main-title"><strong>Emotion Recognition</strong></h1>
+        <p class="subtitle">Multimodal Deep Learning · Emotion &amp; Intent Analysis</p>
+      </header>
+
+      <!-- Input Card -->
+      <div class="card">
+        <div class="card-top-bar"></div>
+        <div class="card-label">Analyse a Video</div>
+        <div class="input-group">
+          <div class="url-row">
+            <input type="text" id="urlInput"
+                   placeholder="Paste YouTube URL — https://youtu.be/..." />
+            <select id="langSelect">
+              <option value="english">🇬🇧 English</option>
+              <option value="kannada">🇮🇳 Kannada</option>
+            </select>
+          </div>
+          <div class="btn-row">
+            <button class="btn-primary" id="analyseBtn" onclick="runAnalysis()">
+              Analyse Video
+            </button>
+            <button class="btn-timeline" id="timelineBtn" onclick="runTimeline()">
+              📈 Emotion Timeline
+            </button>
+          </div>
+        </div>
+        <div class="loader" id="loader">
+          <div class="spinner"></div>
+          <span id="loaderText">Downloading video…</span>
+          <span id="timerDisplay" style="margin-left:auto;font-size:0.78rem;color:#5a5a7a;font-variant-numeric:tabular-nums;">0s</span>
+        </div>
+        <div class="error-box" id="errorBox"></div>
+      </div>
+
+      <!-- Timeline Section -->
+      <div class="timeline-section" id="timelineSection">
+        <div class="card">
+          <div class="card-top-bar" style="background:linear-gradient(90deg,#38bdf8,#7c6cff)"></div>
+          <div class="card-label">Emotion Timeline</div>
+          <div class="timeline-loader" id="timelineLoader">
+            <div class="spinner-teal"></div>
+            <span id="timelineLoaderText">Processing video in windows…</span>
+            <span id="timelineTimer" style="margin-left:auto;font-size:0.78rem;color:#5a5a7a;font-variant-numeric:tabular-nums;">0s</span>
+          </div>
+          <div class="chart-container" id="timelineChartContainer" style="display:none;">
+            <canvas id="timelineChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Results -->
+      <div class="result-section" id="resultSection">
+
+        <div class="card">
+          <div class="card-top-bar"></div>
+          <div class="card-label">Detection Result</div>
+          <div class="result-grid">
+            <div class="result-chip" id="emotionChip">
+              <span class="chip-icon" id="emotionIcon">😐</span>
+              <div class="chip-label">Detected Emotion</div>
+              <div class="chip-value" id="emotionVal">—</div>
+            </div>
+            <div class="result-chip" id="intentChip">
+              <span class="chip-icon" id="intentIcon">💬</span>
+              <div class="chip-label">Detected Intent</div>
+              <div class="chip-value" id="intentVal">—</div>
+            </div>
+          </div>
+          <div class="meta-row" id="metaRow" style="display:none;">
+            <div class="meta-pill">Language: <span id="metaLang">—</span></div>
+            <div class="meta-pill">Audio Energy: <span id="metaEnergy">—</span></div>
+            <div class="meta-pill" id="timePill" style="display:none">⏱ Time: <span id="metaTime">—</span></div>
+            <div class="meta-pill">Audio: <span id="metaAudio">—</span></div>
+            <div class="meta-pill">Visual: <span id="metaVideo">—</span></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-top-bar"></div>
+          <div class="card-label">Confidence Breakdown</div>
+          <div class="prob-cols">
+            <div>
+              <div class="source-badge badge-audio">🎙 Audio — Emotion</div>
+              <div id="emotionBars"></div>
+            </div>
+            <div>
+              <div class="source-badge badge-video">🎞 Visual — Emotion</div>
+              <div id="videoBars"></div>
+            </div>
+          </div>
+          <div style="margin-top: 28px;">
+            <div class="source-badge badge-audio" style="background:rgba(52,211,153,0.1);color:#6ee7b7;border-color:rgba(52,211,153,0.2);">📊 Intent Analysis</div>
+            <div id="intentBars"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-top-bar"></div>
+          <div class="card-label">
+            Intent Explanation
+            <span class="gpt-badge" id="gptBadge" style="display:none;">✦ GPT</span>
+          </div>
+          <div class="explanation-box" id="intentExplanationBox">—</div>
+        </div>
+
+        <div class="card">
+          <div class="card-top-bar"></div>
+          <div class="card-label">Speech Transcript</div>
+          <div class="transcript-box" id="transcriptBox">—</div>
+        </div>
+
+      </div><!-- /result-section -->
+
+      <!-- ════ CHATBOT SECTION ════ -->
+      <div class="chat-section" id="chatSection">
+        <div class="chat-card">
+          <div class="chat-top-bar"></div>
+
+          <div class="chat-header">
+            <div class="chat-header-left">
+              <div class="chat-ai-icon">🤖</div>
+              <div class="chat-header-info">
+                <h3>Ask about this video</h3>
+                <p>GPT-4o-mini · Powered by your analysis</p>
+              </div>
+            </div>
+            <button class="chat-clear-btn" onclick="clearChat()">Clear chat</button>
+          </div>
+
+          <div class="chat-messages" id="chatMessages">
+            <div class="chat-intro" id="chatIntro">
+              <span class="chat-intro-icon">🧠</span>
+              <h4>Video Analysis Assistant</h4>
+              <p>I have full context of your video analysis — emotion, intent, transcript, confidence scores and more. Ask me anything.</p>
+              <div class="chat-suggestions" id="chatSuggestions">
+                <span class="chat-suggestion-chip" onclick="sendSuggestion(this)">Why was this emotion detected?</span>
+                <span class="chat-suggestion-chip" onclick="sendSuggestion(this)">What is the speaker talking about?</span>
+                <span class="chat-suggestion-chip" onclick="sendSuggestion(this)">Explain the intent in simple terms</span>
+                <span class="chat-suggestion-chip" onclick="sendSuggestion(this)">Is this video suitable for children?</span>
+                <span class="chat-suggestion-chip" onclick="sendSuggestion(this)">Summarise the video in 3 bullet points</span>
+                <span class="chat-suggestion-chip" onclick="sendSuggestion(this)">What is the overall mood?</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="chat-input-row">
+            <div class="chat-input-wrap">
+              <textarea class="chat-input" id="chatInput"
+                placeholder="Ask anything about this video…"
+                rows="1"
+                onkeydown="chatKeydown(event)"
+                oninput="autoResize(this)"></textarea>
+            </div>
+            <button class="chat-send-btn" id="chatSendBtn" onclick="sendChatMessage()" title="Send">
+              ➤
+            </button>
+          </div>
+        </div>
+      </div><!-- /chatSection -->
+
+    </div><!-- /wrapper -->
+    </div><!-- /main-content -->
+
+  </div><!-- /layout -->
+</div><!-- /appPage -->
+
+<script>
+const API_BASE = "http://127.0.0.1:8000";
+
+// ── Colour / icon maps ────────────────────────────────────────────────────────
+const EMOTION_COLORS = {
+  angry:"#f87171", fear:"#fb923c", happy:"#4ade80", neutral:"#60a5fa", sad:"#c084fc"
+};
+const EMOTION_ICONS = { angry:"😡", fear:"😨", happy:"😊", neutral:"😐", sad:"😢" };
+const INTENT_COLORS = {
+  informative:"#22d3ee", aggressive:"#f87171", promotional:"#f472b6", conversational:"#34d399"
+};
+const INTENT_ICONS = { informative:"📚", aggressive:"⚡", promotional:"📢", conversational:"💬" };
+const INTENT_EXPLANATIONS = {
+  aggressive:     "The speaker demonstrates an aggressive intent. The language in this video contains confrontational, hostile, or forceful expressions suggesting the speaker is attempting to challenge, attack, or assert dominance.",
+  informative:    "The speaker demonstrates an informative intent. The content is structured to educate, explain, or report factual information to the audience. The primary objective is to enhance the viewer's understanding.",
+  promotional:    "The speaker exhibits a promotional intent. The language and tone are carefully crafted to persuade the audience toward a specific action — such as purchasing a product, subscribing to a service, or endorsing a cause.",
+  conversational: "The speaker adopts a conversational intent. The tone is relaxed, personal, and engaging — akin to an informal dialogue. There is no dominant agenda to sell, instruct, or confront; the core purpose is authentic human connection."
+};
+
+// ── Chat state ─────────────────────────────────────────────────────────────────
+let _chatHistory = [];       // [{role:"user"|"assistant", content:"..."}]
+let _lastAnalysis = null;    // full_result from last successful /predict call
+let _chatBusy     = false;
+let _userInitials = "?";
+
+// ════════════════════════════════════════════════════════════════════════════
+//  AUTH PAGE LOGIC
+// ════════════════════════════════════════════════════════════════════════════
+function switchAuthTab(tab) {
+  document.getElementById("formLogin").style.display  = tab === "login"  ? "" : "none";
+  document.getElementById("formSignup").style.display = tab === "signup" ? "" : "none";
+  document.getElementById("tabLogin").classList.toggle("active",  tab === "login");
+  document.getElementById("tabSignup").classList.toggle("active", tab === "signup");
+  clearAuthErrors();
+}
+
+function clearAuthErrors() {
+  ["loginError","signupError"].forEach(id => {
+    const el = document.getElementById(id);
+    el.textContent = ""; el.classList.remove("visible");
+  });
+}
+
+function showAuthError(id, msg) {
+  const el = document.getElementById(id);
+  el.textContent = msg; el.classList.add("visible");
+}
+
+async function doLogin() {
+  const email    = document.getElementById("loginEmail").value.trim();
+  const password = document.getElementById("loginPassword").value;
+  const btn      = document.getElementById("loginBtn");
+
+  if (!email || !password) { showAuthError("loginError","Please enter your email and password."); return; }
+
+  btn.disabled = true; btn.textContent = "Signing in…";
+  clearAuthErrors();
+
+  try {
+    const resp = await fetch(`${API_BASE}/auth/login`, {
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({ email, password }),
+    });
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.detail || "Login failed");
+    enterApp(data.token, data.user);
+  } catch(err) {
+    showAuthError("loginError", err.message);
+  } finally {
+    btn.disabled = false; btn.textContent = "Sign In";
+  }
+}
+
+async function doSignup() {
+  const name     = document.getElementById("signupName").value.trim();
+  const email    = document.getElementById("signupEmail").value.trim();
+  const password = document.getElementById("signupPassword").value;
+  const btn      = document.getElementById("signupBtn");
+
+  if (!name || !email || !password) { showAuthError("signupError","Please fill in all fields."); return; }
+  if (password.length < 6) { showAuthError("signupError","Password must be at least 6 characters."); return; }
+
+  btn.disabled = true; btn.textContent = "Creating account…";
+  clearAuthErrors();
+
+  try {
+    const resp = await fetch(`${API_BASE}/auth/signup`, {
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({ name, email, password }),
+    });
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.detail || "Sign up failed");
+    enterApp(data.token, data.user);
+  } catch(err) {
+    showAuthError("signupError", err.message);
+  } finally {
+    btn.disabled = false; btn.textContent = "Create Account";
+  }
+}
+
+// Enter key submits
+document.getElementById("loginPassword").addEventListener("keydown",  e => { if(e.key==="Enter") doLogin(); });
+document.getElementById("signupPassword").addEventListener("keydown", e => { if(e.key==="Enter") doSignup(); });
+
+// ════════════════════════════════════════════════════════════════════════════
+//  SESSION — switch between pages
+// ════════════════════════════════════════════════════════════════════════════
+let _token = null;
+
+function getToken() { return _token || localStorage.getItem("affectiq_token"); }
+
+function enterApp(token, user) {
+  _token = token;
+  localStorage.setItem("affectiq_token", token);
+
+  // Update user bar
+  const name = user.name || user.email || "";
+  document.getElementById("userNameLabel").textContent = name;
+  const initials = name.split(" ").map(w => w[0]||"").slice(0,2).join("").toUpperCase();
+  _userInitials = initials || "?";
+  document.getElementById("userInitials").textContent = _userInitials;
+
+  // Swap pages with fade
+  document.getElementById("authPage").style.display = "none";
+  const app = document.getElementById("appPage");
+  app.style.display = "block";
+  app.style.animation = "fadeUp 0.4s ease both";
+
+  // Load history
+  loadHistory();
+}
+
+function signOut() {
+  _token = null;
+  localStorage.removeItem("affectiq_token");
+  closeSidebar();
+  _lastAnalysis = null;
+  _chatHistory  = [];
+
+  // Reset result area
+  document.getElementById("resultSection").classList.remove("visible");
+  document.getElementById("timelineSection").classList.remove("visible");
+  document.getElementById("chatSection").classList.remove("visible");
+  hideError();
+
+  // Swap back to auth page
+  document.getElementById("appPage").style.display = "none";
+  const auth = document.getElementById("authPage");
+  auth.style.display = "flex";
+  auth.style.animation = "fadeUp 0.35s ease both";
+
+  // Clear forms
+  ["loginEmail","loginPassword","signupName","signupEmail","signupPassword"]
+    .forEach(id => { document.getElementById(id).value = ""; });
+  clearAuthErrors();
+  switchAuthTab("login");
+}
+
+async function tryRestoreSession() {
+  const token = localStorage.getItem("affectiq_token");
+  if (!token) return;
+  try {
+    const resp = await fetch(`${API_BASE}/auth/me`, {
+      headers:{ "Authorization": "Bearer " + token },
+    });
+    if (!resp.ok) { localStorage.removeItem("affectiq_token"); return; }
+    const user = await resp.json();
+    enterApp(token, user);
+  } catch {
+    localStorage.removeItem("affectiq_token");
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+//  LOADER / ERROR
+// ════════════════════════════════════════════════════════════════════════════
+const loaderSteps = [
+  "Downloading video…","Extracting audio features…","Running visual CNN…",
+  "Transcribing speech…","Detecting intent with GPT…","Fusing predictions…",
+];
+let loaderInterval, timerInterval, startTime;
+
+function startLoader() {
+  const loader = document.getElementById("loader");
+  const txt    = document.getElementById("loaderText");
+  loader.classList.add("active");
+  startTime = Date.now();
+  let i = 0; txt.textContent = loaderSteps[0];
+  const timerEl = document.getElementById("timerDisplay");
+  timerInterval  = setInterval(() => { timerEl.textContent = ((Date.now()-startTime)/1000).toFixed(1)+"s"; }, 100);
+  loaderInterval = setInterval(() => { i=(i+1)%loaderSteps.length; txt.textContent=loaderSteps[i]; }, 2200);
+}
+function stopLoader() {
+  clearInterval(loaderInterval); clearInterval(timerInterval);
+  window._lastElapsed = ((Date.now()-startTime)/1000).toFixed(1);
+  document.getElementById("loader").classList.remove("active");
+}
+function showError(msg) {
+  const b = document.getElementById("errorBox");
+  b.textContent = "⚠ "+msg; b.classList.add("visible");
+}
+function hideError() { document.getElementById("errorBox").classList.remove("visible"); }
+
+// ════════════════════════════════════════════════════════════════════════════
+//  PROBABILITY BARS + RENDER RESULTS
+// ════════════════════════════════════════════════════════════════════════════
+function renderBars(containerId, probs, colorMap) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  container.innerHTML = "";
+  Object.entries(probs).sort((a,b)=>b[1]-a[1]).forEach(([label,prob]) => {
+    const pct   = (prob*100).toFixed(1);
+    const color = colorMap[label]||"#7c6cff";
+    const row   = document.createElement("div");
+    row.className = "prob-row";
+    row.innerHTML = `
+      <div class="prob-name">${label}</div>
+      <div class="prob-bar-bg">
+        <div class="prob-bar-fill" data-pct="${pct}"
+             style="background:linear-gradient(90deg,${color}cc,${color});"></div>
+      </div>
+      <div class="prob-pct">${pct}%</div>`;
+    container.appendChild(row);
+  });
+  requestAnimationFrame(() => {
+    container.querySelectorAll(".prob-bar-fill").forEach(el => { el.style.width = el.dataset.pct+"%"; });
+  });
+}
+
+function renderResults(data, fromGPT) {
+  document.getElementById("resultSection").classList.add("visible");
+  const emotion = data.emotion||"neutral";
+  const intent  = data.intent ||"conversational";
+
+  const emoChip = document.getElementById("emotionChip");
+  emoChip.className = `result-chip chip-${emotion} chip-glow-${emotion}`;
+  document.getElementById("emotionIcon").textContent = EMOTION_ICONS[emotion]||"😐";
+  document.getElementById("emotionVal").textContent  = emotion;
+
+  const intChip = document.getElementById("intentChip");
+  intChip.className = `result-chip chip-${intent}`;
+  document.getElementById("intentIcon").textContent = INTENT_ICONS[intent]||"💬";
+  document.getElementById("intentVal").textContent  = intent;
+
+  document.getElementById("metaRow").style.display = "flex";
+  document.getElementById("metaLang").textContent   = data.language||"—";
+  document.getElementById("timePill").style.display = "";
+  document.getElementById("metaTime").textContent   = (window._lastElapsed||"—")+"s";
+  document.getElementById("metaEnergy").textContent = data.audio_energy ? data.audio_energy.toFixed(4) : "—";
+  document.getElementById("metaAudio").textContent  = data.audio_emotion||"—";
+  document.getElementById("metaVideo").textContent  = data.video_emotion||"—";
+
+  renderBars("emotionBars", data.audio_probs||{}, EMOTION_COLORS);
+  renderBars("videoBars",   data.video_probs||{}, EMOTION_COLORS);
+  renderBars("intentBars",  data.intent_probs||{}, INTENT_COLORS);
+
+  const explanation = data.intent_explanation || INTENT_EXPLANATIONS[intent] || "(no explanation available)";
+  document.getElementById("intentExplanationBox").textContent = explanation;
+
+  // Show GPT badge if intent was analysed by GPT
+  const badge = document.getElementById("gptBadge");
+  if (fromGPT !== false && data.intent_explanation && data.intent_explanation.length > 80) {
+    badge.style.display = "";
+  } else {
+    badge.style.display = "none";
+  }
+
+  document.getElementById("transcriptBox").textContent =
+    (data.transcript && data.transcript.trim())
+      ? data.transcript
+      : "(transcript not available — audio may be silent or transcription failed)";
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+//  ANALYSIS
+// ════════════════════════════════════════════════════════════════════════════
+async function runAnalysis() {
+  const url  = document.getElementById("urlInput").value.trim();
+  const lang = document.getElementById("langSelect").value;
+  const btn  = document.getElementById("analyseBtn");
+  if (!url) { showError("Please paste a YouTube URL first."); return; }
+
+  hideError();
+  document.getElementById("resultSection").classList.remove("visible");
+  document.getElementById("chatSection").classList.remove("visible");
+  btn.disabled = true;
+  document.getElementById("timelineBtn").disabled = true;
+  startLoader();
+
+  try {
+    const token = getToken();
+    const resp  = await fetch(`${API_BASE}/predict`, {
+      method:"POST",
+      headers:{ "Content-Type":"application/json", "Authorization":"Bearer "+token },
+      body: JSON.stringify({ url, language: lang }),
+    });
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.detail||"Prediction failed");
+
+    _lastAnalysis = data;
+    renderResults(data, true);
+    resetChat();
+    document.getElementById("chatSection").classList.add("visible");
+    loadHistory();
+  } catch(err) {
+    if (err.name==="TypeError" && err.message.includes("fetch"))
+      showError("Cannot reach the API server. Make sure it is running on port 8000.");
+    else showError(err.message);
+  } finally {
+    stopLoader();
+    btn.disabled = false;
+    document.getElementById("timelineBtn").disabled = false;
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+//  TIMELINE
+// ════════════════════════════════════════════════════════════════════════════
+let timelineChart = null;
+
+async function runTimeline() {
+  const url  = document.getElementById("urlInput").value.trim();
+  const lang = document.getElementById("langSelect").value;
+  if (!url) { showError("Please paste a YouTube URL first."); return; }
+
+  hideError();
+  document.getElementById("timelineSection").classList.add("visible");
+  document.getElementById("timelineChartContainer").style.display = "none";
+
+  const loaderEl  = document.getElementById("timelineLoader");
+  const timerEl   = document.getElementById("timelineTimer");
+  const loaderTxt = document.getElementById("timelineLoaderText");
+  loaderEl.classList.add("active");
+  document.getElementById("analyseBtn").disabled  = true;
+  document.getElementById("timelineBtn").disabled = true;
+
+  const tlStart = Date.now();
+  const tlSteps = ["Downloading video…","Processing first window…","Analysing audio segments…","Detecting faces per window…","Fusing modalities…","Building timeline…"];
+  let si = 0;
+  loaderTxt.textContent = tlSteps[0];
+  const tlLoop  = setInterval(() => { si=(si+1)%tlSteps.length; loaderTxt.textContent=tlSteps[si]; }, 3000);
+  const tlTimer = setInterval(() => { timerEl.textContent = ((Date.now()-tlStart)/1000).toFixed(1)+"s"; }, 100);
+
+  try {
+    const token = getToken();
+    const resp  = await fetch(`${API_BASE}/predict/timeline`, {
+      method:"POST",
+      headers:{ "Content-Type":"application/json", "Authorization":"Bearer "+token },
+      body: JSON.stringify({ url, language: lang, window_secs: 8 }),
+    });
+    const data = await resp.json();
+    if (!resp.ok) {
+      const detail = typeof data.detail === "string"
+        ? data.detail
+        : "The server could not analyse this video.";
+      throw new Error(detail);
+    }
+
+    if (!Array.isArray(data.timeline) || data.timeline.length === 0) {
+      throw new Error("The server returned an empty emotion timeline.");
+    }
+
+    renderTimelineChart(data.timeline);
+
+    if (data.timeline && data.timeline.length) {
+      const emotions = ["angry","fear","happy","neutral","sad"];
+      const avgProbs = {};
+      emotions.forEach(e => {
+        avgProbs[e] = data.timeline.reduce((sum, w) =>
+          sum + ((w.fused_probs && w.fused_probs[e]) || 0), 0) / data.timeline.length;
+      });
+      const dominantEmotion = emotions.reduce((a, b) =>
+        avgProbs[a] >= avgProbs[b] ? a : b);
+      const freq = {};
+      data.timeline.forEach(w => {
+        const e = w.fused_emotion || dominantEmotion;
+        freq[e] = (freq[e] || 0) + 1;
+      });
+      const topEmotion = Object.entries(freq).sort((a,b) => b[1]-a[1])[0][0];
+
+      window._lastElapsed = ((Date.now() - tlStart) / 1000).toFixed(1);
+
+      const tlResult = {
+        emotion:            topEmotion,
+        intent:             "—",
+        language:           lang,
+        audio_emotion:      topEmotion,
+        video_emotion:      topEmotion,
+        audio_energy:       null,
+        audio_probs:        avgProbs,
+        video_probs:        avgProbs,
+        intent_probs:       {},
+        transcript:         `(Timeline mode — ${data.timeline.length} windows analysed over ${data.duration}s)`,
+        intent_explanation: "Intent analysis is not available in timeline mode. Use Analyse Video for intent detection.",
+      };
+
+      renderResults(tlResult, false);
+
+      document.getElementById("timelineSection").scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    loadHistory();
+  } catch(err) {
+    document.getElementById("timelineSection").classList.add("visible");
+    const errMsg = "Timeline error: " + err.message + "\n\nMake sure the API is running and the YouTube URL is valid.";
+    showError(errMsg);
+  } finally {
+    clearInterval(tlLoop); clearInterval(tlTimer);
+    loaderEl.classList.remove("active");
+    document.getElementById("analyseBtn").disabled  = false;
+    document.getElementById("timelineBtn").disabled = false;
+  }
+}
+
+function renderTimelineChart(timeline) {
+  if (!Array.isArray(timeline) || !timeline.length) {
+    document.getElementById("timelineChartContainer").style.display = "none";
+    return;
+  }
+
+  if (typeof Chart === 'undefined') {
+    console.error('[timeline] Chart.js is unavailable.');
+    showError("Emotion Timeline could not load its chart library. Check your internet connection and reload the page.");
+    return;
+  }
+
+  const validTimeline = timeline.filter(w =>
+    w && Number.isFinite(Number(w.timestamp))
+  );
+  if (!validTimeline.length) {
+    showError("Emotion Timeline returned no valid time windows.");
+    return;
+  }
+
+  document.getElementById("timelineChartContainer").style.display = "block";
+  const emotions = ["angry","fear","happy","neutral","sad"];
+  const labels = validTimeline.map(w => `${Number(w.timestamp).toFixed(1)}s`);
+
+  const datasets = emotions.map(emo => ({
+    label: emo,
+    borderColor: EMOTION_COLORS[emo],
+    backgroundColor: EMOTION_COLORS[emo] + "22",
+    data: validTimeline.map(w => {
+      const value = Number(w.fused_probs && w.fused_probs[emo]);
+      return Number.isFinite(value) ? +(value * 100).toFixed(1) : 0;
+    }),
+    borderWidth: 2,
+    pointRadius: 4,
+    pointHoverRadius: 6,
+    tension: 0.3,
+    fill: false,
+    spanGaps: true,
+  }));
+  if (timelineChart) { timelineChart.destroy(); timelineChart = null; }
+  const ctx = document.getElementById("timelineChart").getContext("2d");
+  timelineChart = new Chart(ctx, {
+    type:"line", data:{labels,datasets},
+    options:{
+      responsive:true, maintainAspectRatio:false, animation:{duration:600},
+      scales:{
+        x:{ ticks:{color:"#8888aa",font:{size:11}}, grid:{color:"#1e1e3a"} },
+        y:{ min:0,max:100, ticks:{color:"#8888aa",font:{size:11},callback:v=>v+"%"}, grid:{color:"#1e1e3a"} },
+      },
+      plugins:{
+        legend:{ labels:{color:"#8888aa",font:{size:11},boxWidth:14,padding:12} },
+        tooltip:{
+          backgroundColor:"#13132a", borderColor:"#2a2a4a", borderWidth:1,
+          titleColor:"#e2e2f0", bodyColor:"#8888aa",
+          callbacks:{ label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y.toFixed(1)}%` },
+        },
+      },
+    },
+  });
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+//  HISTORY SIDEBAR
+// ════════════════════════════════════════════════════════════════════════════
+function toggleSidebar() {
+  const sidebar = document.getElementById("sidebar");
+  const main    = document.getElementById("mainContent");
+  if (sidebar.classList.contains("open")) { closeSidebar(); }
+  else { sidebar.classList.add("open"); main.classList.add("sidebar-open"); }
+}
+function closeSidebar() {
+  document.getElementById("sidebar").classList.remove("open");
+  document.getElementById("mainContent").classList.remove("sidebar-open");
+}
+
+async function loadHistory() {
+  const token = getToken();
+  if (!token) return;
+  const body = document.getElementById("sidebarBody");
+  try {
+    const resp  = await fetch(`${API_BASE}/history`, { headers:{"Authorization":"Bearer "+token} });
+    if (!resp.ok) return;
+    const data  = await resp.json();
+    const items = data.history || [];
+    if (!items.length) {
+      body.innerHTML = `<div class="history-empty">No analyses saved yet.<br>Run an analysis to build your history.</div>`;
+      return;
+    }
+    body.innerHTML = "";
+    items.forEach(item => {
+      const div = document.createElement("div");
+      div.className = "history-item";
+      div.onclick   = e => { if(e.target.closest(".history-delete")) return; reloadItem(item); };
+      const date    = new Date(item.created_at*1000);
+      const timeStr = date.toLocaleString(undefined,{month:"short",day:"numeric",hour:"2-digit",minute:"2-digit"});
+      div.innerHTML = `
+        <div class="history-url" title="${escHtml(item.url)}">${escHtml(item.url)}</div>
+        <div class="history-tags">
+          <span class="history-tag tag-${item.emotion||"neutral"}">${escHtml(item.emotion||"—")}</span>
+          <span class="history-tag tag-intent">${escHtml(item.intent||"—")}</span>
+        </div>
+        <div class="history-time">${timeStr}</div>
+        <button class="history-delete" title="Delete" onclick="deleteHistory(${item.id},this)">✕</button>`;
+      body.appendChild(div);
+    });
+  } catch {}
+}
+
+function reloadItem(item) {
+  document.getElementById("urlInput").value =
+    item.url.startsWith("[upload]") ? "" : item.url;
+  closeSidebar();
+
+  document.getElementById("timelineSection").classList.remove("visible");
+  document.getElementById("timelineChartContainer").style.display = "none";
+  if (timelineChart) { timelineChart.destroy(); timelineChart = null; }
+
+  if (item.full_result) {
+    _lastAnalysis = item.full_result;
+    renderResults(item.full_result, true);
+    resetChat();
+    document.getElementById("chatSection").classList.add("visible");
+  } else {
+    const partial = {
+      emotion:            item.emotion || "neutral",
+      intent:             item.intent  || "conversational",
+      language:           "—",
+      audio_emotion:      "—",
+      video_emotion:      "—",
+      audio_energy:       null,
+      audio_probs:        {},
+      video_probs:        {},
+      intent_probs:       {},
+      transcript:         "(Full detail not stored — re-run analysis for breakdown)",
+      intent_explanation: "(Re-run analysis for intent explanation)"
+    };
+    _lastAnalysis = partial;
+    renderResults(partial, false);
+    resetChat();
+    document.getElementById("chatSection").classList.add("visible");
+  }
+  document.getElementById("resultSection").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+async function deleteHistory(id, btn) {
+  const token = getToken(); if (!token) return;
+  btn.textContent = "…";
+  try {
+    await fetch(`${API_BASE}/history/${id}`, { method:"DELETE", headers:{"Authorization":"Bearer "+token} });
+    btn.closest(".history-item").remove();
+    if (!document.querySelector(".history-item"))
+      document.getElementById("sidebarBody").innerHTML =
+        `<div class="history-empty">No analyses saved yet.<br>Run an analysis to build your history.</div>`;
+  } catch {}
+}
+
+function escHtml(str) {
+  return String(str).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;").replace(/'/g,"&#39;");
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+//  CHATBOT
+// ════════════════════════════════════════════════════════════════════════════
+
+function resetChat() {
+  _chatHistory = [];
+  const msgs = document.getElementById("chatMessages");
+  msgs.innerHTML = `
+    <div class="chat-intro" id="chatIntro">
+      <span class="chat-intro-icon">🧠</span>
+      <h4>Video Analysis Assistant</h4>
+      <p>I have full context of your video analysis — emotion, intent, transcript, confidence scores and more. Ask me anything.</p>
+      <div class="chat-suggestions" id="chatSuggestions">
+        <span class="chat-suggestion-chip" onclick="sendSuggestion(this)">Why was this emotion detected?</span>
+        <span class="chat-suggestion-chip" onclick="sendSuggestion(this)">What is the speaker talking about?</span>
+        <span class="chat-suggestion-chip" onclick="sendSuggestion(this)">Explain the intent in simple terms</span>
+        <span class="chat-suggestion-chip" onclick="sendSuggestion(this)">Is this video suitable for children?</span>
+        <span class="chat-suggestion-chip" onclick="sendSuggestion(this)">Summarise the video in 3 bullet points</span>
+        <span class="chat-suggestion-chip" onclick="sendSuggestion(this)">What is the overall mood?</span>
+      </div>
+    </div>`;
+  document.getElementById("chatInput").value = "";
+  autoResize(document.getElementById("chatInput"));
+}
+
+function clearChat() {
+  resetChat();
+}
+
+function sendSuggestion(chipEl) {
+  const text = chipEl.textContent;
+  document.getElementById("chatInput").value = text;
+  sendChatMessage();
+}
+
+function chatKeydown(e) {
+  if (e.key === "Enter" && !e.shiftKey) {
+    e.preventDefault();
+    sendChatMessage();
+  }
+}
+
+function autoResize(el) {
+  el.style.height = "auto";
+  el.style.height = Math.min(el.scrollHeight, 120) + "px";
+}
+
+function _formatTime() {
+  const now = new Date();
+  return now.toLocaleTimeString([], {hour:"2-digit", minute:"2-digit"});
+}
+
+function _appendBubble(role, text) {
+  // Remove intro if present
+  const intro = document.getElementById("chatIntro");
+  if (intro) intro.remove();
+
+  const msgs   = document.getElementById("chatMessages");
+  const bubble = document.createElement("div");
+  bubble.className = `chat-bubble ${role}`;
+
+  if (role === "ai") {
+    bubble.innerHTML = `
+      <div class="bubble-avatar ai">AI</div>
+      <div class="bubble-body">
+        <div class="bubble-text">${escHtml(text).replace(/\n/g,"<br>")}</div>
+        <div class="bubble-time">${_formatTime()}</div>
+      </div>`;
+  } else {
+    bubble.innerHTML = `
+      <div class="bubble-avatar user-av">${escHtml(_userInitials)}</div>
+      <div class="bubble-body">
+        <div class="bubble-text">${escHtml(text).replace(/\n/g,"<br>")}</div>
+        <div class="bubble-time">${_formatTime()}</div>
+      </div>`;
+  }
+
+  msgs.appendChild(bubble);
+  msgs.scrollTop = msgs.scrollHeight;
+  return bubble;
+}
+
+function _appendTyping() {
+  const intro = document.getElementById("chatIntro");
+  if (intro) intro.remove();
+
+  const msgs    = document.getElementById("chatMessages");
+  const wrapper = document.createElement("div");
+  wrapper.className = "chat-bubble ai";
+  wrapper.id        = "typingBubble";
+  wrapper.innerHTML = `
+    <div class="bubble-avatar ai">AI</div>
+    <div class="bubble-body">
+      <div class="typing-indicator">
+        <div class="typing-dot"></div>
+        <div class="typing-dot"></div>
+        <div class="typing-dot"></div>
+      </div>
+    </div>`;
+  msgs.appendChild(wrapper);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function _removeTyping() {
+  const el = document.getElementById("typingBubble");
+  if (el) el.remove();
+}
+
+async function sendChatMessage() {
+  if (_chatBusy) return;
+
+  const inputEl = document.getElementById("chatInput");
+  const message = inputEl.value.trim();
+  if (!message) return;
+
+  const token = getToken();
+  if (!token) { showError("Please sign in to use the chatbot."); return; }
+
+  // Clear input
+  inputEl.value = "";
+  autoResize(inputEl);
+
+  // Show user bubble
+  _appendBubble("user", message);
+
+  // Add to history
+  _chatHistory.push({ role: "user", content: message });
+
+  // Show typing
+  _chatBusy = true;
+  document.getElementById("chatSendBtn").disabled = true;
+  _appendTyping();
+
+  try {
+    const resp = await fetch(`${API_BASE}/chat`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + token,
+      },
+      body: JSON.stringify({
+        message,
+        context: _lastAnalysis || null,
+        history: _chatHistory.slice(0, -1),  // exclude the message we just added
+      }),
+    });
+
+    const data = await resp.json();
+    _removeTyping();
+
+    if (!resp.ok) {
+      let errMsg = data.detail || "Chat request failed";
+      if (resp.status === 503) {
+        errMsg = data.detail || "OpenAI API key not configured on the server.\n\nCreate a .env file next to app.py with:\n  OPENAI_API_KEY=sk-...\nThen restart the server.";
+      } else if (resp.status === 429) {
+        errMsg = data.detail || "OpenAI rate limit reached. Please wait a moment and try again.";
+      } else if (resp.status === 401) {
+        errMsg = "Session expired — please sign out and sign in again.";
+      } else if (resp.status === 500) {
+        errMsg = "GPT call failed: " + errMsg + "\n\nCheck that your OPENAI_API_KEY is valid and has credit.";
+      }
+      _appendBubble("ai", "⚠ " + errMsg);
+      _chatHistory.pop();  // remove failed user message
+      return;
+    }
+
+    const reply = data.reply || "(no response)";
+    _appendBubble("ai", reply);
+    _chatHistory.push({ role: "assistant", content: reply });
+
+  } catch(err) {
+    _removeTyping();
+    if (err.name === "TypeError" && err.message.includes("fetch")) {
+      _appendBubble("ai", "⚠ Cannot reach the API server.\n\nMake sure uvicorn is running:\n  uvicorn app:app --reload --port 8000");
+    } else {
+      _appendBubble("ai", "⚠ " + err.message);
+    }
+    _chatHistory.pop();
+  } finally {
+    _chatBusy = false;
+    document.getElementById("chatSendBtn").disabled = false;
+    inputEl.focus();
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+//  BOOTSTRAP
+// ════════════════════════════════════════════════════════════════════════════
+document.addEventListener("DOMContentLoaded", () => {
+  tryRestoreSession();  // if token exists + valid → go straight to app
+});
+
+document.getElementById("urlInput")
+  .addEventListener("keydown", e => { if(e.key==="Enter") runAnalysis(); });
+</script>
+</body>
+</html>
